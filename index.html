@@ -19,6 +19,22 @@
     <input type="text" id="qr-text" placeholder="QR 코드에 넣을 텍스트를 입력하세요">
     <button onclick="generateQRCode()">QR 코드 생성</button>
     <div id="qrcode"></div>
+    <div>
+        <h2>자재 추가</h2>
+        <form id="material-form">
+            <input type="text" id="material-name" placeholder="자재명">
+            <input type="date" id="in-date" placeholder="입고일">
+            <input type="date" id="out-date" placeholder="출고일">
+            <input type="number" id="total-quantity" placeholder="총개수">
+            <input type="number" id="required-quantity" placeholder="필요수량">
+            <input type="text" id="location" placeholder="자재위치">
+            <button type="button" onclick="addMaterial()">자재 추가</button>
+        </form>
+    </div>
+    <div>
+        <h2>자재 리스트</h2>
+        <ul id="materials-list"></ul>
+    </div>
 
     <script>
         // Firebase 설정
@@ -40,6 +56,7 @@
             firebase.auth().signInWithEmailAndPassword(email, password)
                 .then((userCredential) => {
                     console.log("사용자 로그인됨: ", userCredential.user);
+                    loadMaterials();
                 })
                 .catch((error) => {
                     console.error("로그인 오류: ", error);
@@ -73,15 +90,57 @@
 
         // QR 코드 데이터를 Firestore에 저장하는 함수
         function saveQRCodeData(data) {
-            db.collection("qr-codes").add({
+            var type = prompt("입고인지 출고인지 입력하세요 (in/out):").toLowerCase();
+            db.collection(type === "in" ? "in-logs" : "out-logs").add({
                 data: data,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             })
             .then((docRef) => {
                 console.log("문서 작성됨 ID: ", docRef.id);
+                loadLogs();
             })
             .catch((error) => {
                 console.error("문서 추가 중 오류: ", error);
+            });
+        }
+
+        // 자재를 Firestore에 저장하는 함수
+        function addMaterial() {
+            var materialName = document.getElementById("material-name").value;
+            var inDate = document.getElementById("in-date").value;
+            var outDate = document.getElementById("out-date").value;
+            var totalQuantity = document.getElementById("total-quantity").value;
+            var requiredQuantity = document.getElementById("required-quantity").value;
+            var location = document.getElementById("location").value;
+
+            db.collection("materials").add({
+                materialName: materialName,
+                inDate: inDate,
+                outDate: outDate,
+                totalQuantity: totalQuantity,
+                requiredQuantity: requiredQuantity,
+                location: location,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            })
+            .then((docRef) => {
+                console.log("자재 추가됨 ID: ", docRef.id);
+                loadMaterials();
+            })
+            .catch((error) => {
+                console.error("자재 추가 중 오류: ", error);
+            });
+        }
+
+        // Firestore에서 자재 리스트를 불러오는 함수
+        function loadMaterials() {
+            db.collection("materials").orderBy("timestamp", "desc").get().then((querySnapshot) => {
+                var materialsList = document.getElementById("materials-list");
+                materialsList.innerHTML = "";
+                querySnapshot.forEach((doc) => {
+                    var li = document.createElement("li");
+                    li.textContent = `자재명: ${doc.data().materialName}, 입고일: ${doc.data().inDate}, 출고일: ${doc.data().outDate}, 총개수: ${doc.data().totalQuantity}, 필요수량: ${doc.data().requiredQuantity}, 자재위치: ${doc.data().location}`;
+                    materialsList.appendChild(li);
+                });
             });
         }
     </script>
