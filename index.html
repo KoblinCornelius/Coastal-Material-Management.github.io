@@ -22,12 +22,12 @@
     <div>
         <h2>자재 추가</h2>
         <form id="material-form">
-            <input type="text" id="material-name" placeholder="자재명">
-            <input type="date" id="in-date" placeholder="입고일">
-            <input type="date" id="out-date" placeholder="출고일">
-            <input type="number" id="total-quantity" placeholder="총개수">
-            <input type="number" id="required-quantity" placeholder="필요수량">
-            <input type="text" id="location" placeholder="자재위치">
+            <input type="text" id="material-name" placeholder="자재명" required>
+            <input type="date" id="in-date" placeholder="입고일" required>
+            <input type="date" id="out-date" placeholder="출고일" required>
+            <input type="number" id="total-quantity" placeholder="총개수" required>
+            <input type="number" id="required-quantity" placeholder="필요수량" required>
+            <input type="text" id="location" placeholder="자재위치" required>
             <button type="button" onclick="addMaterial()">자재 추가</button>
         </form>
     </div>
@@ -137,8 +137,9 @@
                 var materialsList = document.getElementById("materials-list");
                 materialsList.innerHTML = "";
                 querySnapshot.forEach((doc) => {
+                    var data = doc.data();
                     var li = document.createElement("li");
-                    li.textContent = `자재명: ${doc.data().materialName}, 입고일: ${doc.data().inDate}, 출고일: ${doc.data().outDate}, 총개수: ${doc.data().totalQuantity}, 필요수량: ${doc.data().requiredQuantity}, 자재위치: ${doc.data().location}`;
+                    li.textContent = `자재명: ${data.materialName}, 입고일: ${data.inDate}, 출고일: ${data.outDate}, 총개수: ${data.totalQuantity}, 필요수량: ${data.requiredQuantity}, 자재위치: ${data.location}`;
                     materialsList.appendChild(li);
                 });
             });
