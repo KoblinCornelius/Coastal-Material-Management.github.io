@@ -23,8 +23,8 @@
         <h2>자재 추가</h2>
         <form id="material-form">
             <input type="text" id="material-name" placeholder="자재명" required>
-            <input type="date" id="in-date" placeholder="입고일" required>
-            <input type="date" id="out-date" placeholder="출고일" required>
+            <input type="date" id="in-date" required>
+            <input type="date" id="out-date" required>
             <input type="number" id="total-quantity" placeholder="총개수" required>
             <input type="number" id="required-quantity" placeholder="필요수량" required>
             <input type="text" id="location" placeholder="자재위치" required>
@@ -97,7 +97,7 @@
             })
             .then((docRef) => {
                 console.log("문서 작성됨 ID: ", docRef.id);
-                loadLogs();
+                loadMaterials();
             })
             .catch((error) => {
                 console.error("문서 추가 중 오류: ", error);
