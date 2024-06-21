@@ -3,86 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Material Management</title>
+    <title>Inventory Management</title>
     <style>
         body {
             font-family: Arial, sans-serif;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
+        .tabs {
+            display: flex;
+            cursor: pointer;
+            margin-bottom: 10px;
         }
-        table, th, td {
-            border: 1px solid #ddd;
+        .tab {
+            padding: 10px;
+            border: 1px solid #ccc;
+            margin-right: 5px;
         }
-        th, td {
-            padding: 8px;
-            text-align: left;
+        .tab-content {
+            display: none;
+            border: 1px solid #ccc;
+            padding: 10px;
         }
-        th {
-            background-color: #f2f2f2;
+        .active {
+            display: block;
         }
-        #qr-reader {
-            width: 300px;
-            margin: 20px auto;
-        }
-        #qr-result {
-            text-align: center;
-            margin-top: 20px;
-        }
-        #qr-code {
-            margin-top: 20px;
-            text-align: center;
+        .active-tab {
+            background-color: #ccc;
         }
     </style>
+    <script>
+        function showTab(event, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tab");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active-tab", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            event.currentTarget.className += " active-tab";
+        }
+        document.addEventListener("DOMContentLoaded", function() {
+            document.getElementById("defaultOpen").click();
+        });
+    </script>
 </head>
 <body>
-    <h1>연안 자재리스트</h1>
-    <table border="1" class="dataframe">
-        <thead>
-            <tr style="text-align: right;">
-                <th>바코드</th>
-                <th>종류</th>
-                <th>자재명</th>
-                <th>수량</th>
-                <th>최소 필요 수량</th>
-                <th>위치</th>
-                <th>단가</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>NaN</td>
-                <td>Filter</td>
-                <td>(310948) 0007 L 003 P</td>
-                <td>0</td>
-                <td>NaN</td>
-                <td>연안 창고</td>
-                <td>NaN</td>
-            </tr>
-            <tr>
-                <td>NaN</td>
-                <td>Filter</td>
-                <td>0.1NR 1000.32227.10.VG.25G.25.B.V.-S1(319435) (대체품: 8.1000 R 10 BN4/-V-B3.5-KE25 (1297457))</td>
-                <td>0</td>
-                <td>NaN</td>
-                <td>연안 창고</td>
-                <td>NaN</td>
-            </tr>
-            <!-- 여기에 나머지 테이블 행을 추가합니다. -->
-        </tbody>
-    </table>
 
-    <div id="qr-reader"></div>
-    <div id="qr-result">QR 코드 스캔 결과: <span id="qr-result-data"></span></div>
+<h1>Inventory Management</h1>
 
-    <div id="qr-code">
-        <input type="text" id="qr-input" placeholder="QR 코드에 넣을 내용">
-        <button id="generate-qr">QR 코드 생성</button>
-        <div id="qr-output"></div>
-    </div>
+<div class="tabs">
+    <div class="tab active-tab" onclick="showTab(event, 'tab1')" id="defaultOpen">목록</div>
+    <div class="tab" onclick="showTab(event, 'tab2')">재고관리</div>
+    <div class="tab" onclick="showTab(event, 'tab3')">Search</div>
+    <div class="tab" onclick="showTab(event, 'tab4')">정기점검 자재 2회분</div>
+</div>
 
-    <script src="src/app.js"></script>
+<div id="tab1" class="tab-content active">
+    <!-- 목록 테이블 HTML 삽입 -->
+    {html_tables['목록']}
+</div>
+<div id="tab2" class="tab-content">
+    <!-- 재고관리 테이블 HTML 삽입 -->
+    {html_tables['재고관리']}
+</div>
+<div id="tab3" class="tab-content">
+    <!-- Search 테이블 HTML 삽입 -->
+    {html_tables['Search']}
+</div>
+<div id="tab4" class="tab-content">
+    <!-- 정기점검 자재 2회분 테이블 HTML 삽입 -->
+    {html_tables['정기점검 자재 2회분']}
+</div>
+
 </body>
 </html>
