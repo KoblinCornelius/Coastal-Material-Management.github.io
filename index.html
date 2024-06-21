@@ -1,154 +1,88 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>자재 관리</title>
-    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
-    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Material Management</title>
     <style>
-        #reader {
+        body {
+            font-family: Arial, sans-serif;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        #qr-reader {
             width: 300px;
-            height: 300px;
+            margin: 20px auto;
+        }
+        #qr-result {
+            text-align: center;
+            margin-top: 20px;
+        }
+        #qr-code {
+            margin-top: 20px;
+            text-align: center;
         }
     </style>
 </head>
 <body>
-    <h1>자재 관리</h1>
-    <div id="auth-section">
-        <button id="login-button">Google 로그인</button>
+    <h1>연안 자재리스트</h1>
+    <table border="1" class="dataframe">
+        <thead>
+            <tr style="text-align: right;">
+                <th>바코드</th>
+                <th>종류</th>
+                <th>자재명</th>
+                <th>수량</th>
+                <th>최소 필요 수량</th>
+                <th>위치</th>
+                <th>단가</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>NaN</td>
+                <td>Filter</td>
+                <td>(310948) 0007 L 003 P</td>
+                <td>0</td>
+                <td>NaN</td>
+                <td>연안 창고</td>
+                <td>NaN</td>
+            </tr>
+            <tr>
+                <td>NaN</td>
+                <td>Filter</td>
+                <td>0.1NR 1000.32227.10.VG.25G.25.B.V.-S1(319435) (대체품: 8.1000 R 10 BN4/-V-B3.5-KE25 (1297457))</td>
+                <td>0</td>
+                <td>NaN</td>
+                <td>연안 창고</td>
+                <td>NaN</td>
+            </tr>
+            <!-- 여기에 나머지 테이블 행을 추가합니다. -->
+        </tbody>
+    </table>
+
+    <div id="qr-reader"></div>
+    <div id="qr-result">QR 코드 스캔 결과: <span id="qr-result-data"></span></div>
+
+    <div id="qr-code">
+        <input type="text" id="qr-input" placeholder="QR 코드에 넣을 내용">
+        <button id="generate-qr">QR 코드 생성</button>
+        <div id="qr-output"></div>
     </div>
-    <div id="logout-section" style="display: none;">
-        <button id="logout-button">로그아웃</button>
-    </div>
-    <div id="content" style="display: none;">
-        <div>
-            <h2>자재 목록</h2>
-            <ul id="materials-list"></ul>
-        </div>
-        <div>
-            <h2>자재 추가</h2>
-            <form id="add-material-form">
-                <input type="text" id="barcode" placeholder="바코드" required>
-                <input type="text" id="type" placeholder="종류" required>
-                <input type="text" id="name" placeholder="자재명" required>
-                <input type="number" id="quantity" placeholder="수량" required>
-                <input type="text" id="location" placeholder="위치" required>
-                <input type="number" id="price" placeholder="단가" required>
-                <button type="submit">추가</button>
-            </form>
-        </div>
-        <div>
-            <h2>입고/출고</h2>
-            <div id="reader"></div>
-            <form id="update-material-form">
-                <input type="text" id="scan-barcode" placeholder="스캔된 바코드" readonly required>
-                <input type="number" id="update-quantity" placeholder="수량" required>
-                <select id="update-type">
-                    <option value="in">입고</option>
-                    <option value="out">출고</option>
-                </select>
-                <button type="submit">업데이트</button>
-            </form>
-        </div>
-    </div>
-    <script>
-        // Firebase 설정
-        var firebaseConfig = {
-            apiKey: "YOUR_FIREBASE_API_KEY",
-            authDomain: "YOUR_FIREBASE_AUTH_DOMAIN",
-            projectId: "YOUR_FIREBASE_PROJECT_ID",
-            storageBucket: "YOUR_FIREBASE_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_FIREBASE_MESSAGING_SENDER_ID",
-            appId: "YOUR_FIREBASE_APP_ID"
-        };
 
-        // Firebase 초기화
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-
-        // Google 로그인 설정
-        const provider = new firebase.auth.GoogleAuthProvider();
-
-        document.getElementById('login-button').addEventListener('click', () => {
-            auth.signInWithPopup(provider);
-        });
-
-        document.getElementById('logout-button').addEventListener('click', () => {
-            auth.signOut();
-        });
-
-        // 인증 상태 변경 핸들러
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                document.getElementById('auth-section').style.display = 'none';
-                document.getElementById('logout-section').style.display = 'block';
-                document.getElementById('content').style.display = 'block';
-                fetchMaterials();
-            } else {
-                document.getElementById('auth-section').style.display = 'block';
-                document.getElementById('logout-section').style.display = 'none';
-                document.getElementById('content').style.display = 'none';
-            }
-        });
-
-        async function fetchMaterials() {
-            const materialsList = document.getElementById('materials-list');
-            materialsList.innerHTML = '';
-            const snapshot = await db.collection('materials').get();
-            snapshot.forEach(doc => {
-                const material = doc.data();
-                const listItem = document.createElement('li');
-                listItem.textContent = `${material.name} - ${material.quantity} - ${material.location}`;
-                materialsList.appendChild(listItem);
-            });
-        }
-
-        document.getElementById('add-material-form').addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const barcode = document.getElementById('barcode').value;
-            const type = document.getElementById('type').value;
-            const name = document.getElementById('name').value;
-            const quantity = document.getElementById('quantity').value;
-            const location = document.getElementById('location').value;
-            const price = document.getElementById('price').value;
-
-            await db.collection('materials').add({ barcode, type, name, quantity, location, price });
-            fetchMaterials();
-        });
-
-        document.getElementById('update-material-form').addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const barcode = document.getElementById('scan-barcode').value;
-            const quantity = parseInt(document.getElementById('update-quantity').value, 10);
-            const type = document.getElementById('update-type').value;
-
-            const snapshot = await db.collection('materials').where('barcode', '==', barcode).get();
-            if (!snapshot.empty) {
-                snapshot.forEach(async doc => {
-                    const material = doc.data();
-                    let newQuantity = type === 'in' ? material.quantity + quantity : material.quantity - quantity;
-                    if (newQuantity < 0) newQuantity = 0;
-                    await db.collection('materials').doc(doc.id).update({ quantity: newQuantity });
-                });
-            }
-            fetchMaterials();
-        });
-
-        function onScanSuccess(qrCodeMessage) {
-            document.getElementById('scan-barcode').value = qrCodeMessage;
-        }
-
-        function onScanError(errorMessage) {
-            // Handle scan error
-        }
-
-        const html5QrcodeScanner = new Html5QrcodeScanner(
-            "reader", { fps: 10, qrbox: 250 });
-        html5QrcodeScanner.render(onScanSuccess, onScanError);
-    </script>
+    <script src="src/app.js"></script>
 </body>
 </html>
-
